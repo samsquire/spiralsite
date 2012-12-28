@@ -1,0 +1,201 @@
+<script type="text/javascript" src="jquery.js"></script>
+<style>
+	body {
+		width: 400px;
+		height: 10000px;  
+	}
+
+	.article {
+		position: absolute;
+		width: 100px;
+		height: 200px;
+		border: 1px solid black;
+		float: left;
+		-webkit-transform-style: preserve-3d;
+		background-color: white;
+	}
+
+	.block {
+		position: absolute;
+		width: 3px;
+		height: 3px;
+		background-color: black;
+		float: left;
+		-webkit-transform-style: preserve-3d;
+	}
+
+
+
+	#stage {
+		height: 600px;
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		-webkit-transform-style: preserve-3d;
+		width: 100%;
+
+	}
+
+	#camera {
+		top: 50%;
+		position: fixed;
+		float: left;
+		left: 50%;
+		-webkit-perspective: 50000;
+		-webkit-perspective-origin: 0px 0px 1000px;
+		-webkit-transform-style: preserve-3d;
+	}
+</style>
+
+
+<div id="camera">
+	<div id="stage">
+
+	</div>
+</div>
+
+<div class="block">
+	&nbsp;
+</div>
+
+<section class="article">
+<h1>My post</h1>
+<span class="published">Published <strong>yesterday</strong></span>
+<p>I am post</p>
+</section>
+
+<script type="text/javascript">
+	var stage = $("#stage");
+	Number.prototype.toRadians = function() {
+		return this * (Math.PI / 180);
+	}
+Number.prototype.toAngle = function() {
+	return this * (180 / Math.PI);
+}
+
+function RNG (min, max) {
+	return Math.random() * (max - min) + min;
+}
+
+function spiral(source, point, list) {
+	function addBlock(blocks, n, nitem) {
+		n > 0 ? (addBlock(blocks, n - 1, nitem-1), list.push(point($(blocks[0]).clone(true), source, n ))) : false
+	}
+	articles = $(".article");
+	console.log(articles.length);
+	addBlock(articles, 50, 50);
+}
+
+function point(block, source, angle) {
+	// var block = $("<div>");
+	var style = {
+top: 200 * Math.cos(angle),
+		 left: 200 * Math.sin(angle),
+		 z: angle * 200
+	};
+	style.top = Math.floor(style.top);
+	style.left = Math.floor(style.left);
+	style.z = Math.floor(style.z);
+	style.left += "px";
+	style.top += "px";
+	style.z += "px";
+	var movement = 'translate3d(' + style.left + ', ' + style.top + ',' + style.z + ')';
+			block.data('position', movement);
+			// console.log(movement);
+			block.css('-webkit-transform', movement);
+			// block.addClass("block");
+			source.append(block);
+			return block;
+			}
+
+			var blocks = [];
+			spiral(stage, point, blocks);
+
+
+			var _mouseX = 0,
+			_mouseY = 0,
+			rx = 0,
+			ry = 0;
+			var px = 0,
+			py = 0,
+			pz = 0;
+			var rotation = '',
+			movement = '',
+			origin = '';
+
+function update_camera() {
+	var a = rotation;
+	$("#stage").css('-webkit-transform', a);
+}
+var zoom = 800;
+var current = {rotation: 0, perspective: 8000};
+function spinTo(duration, start, end) {
+	animating = true;
+	$(start).animate(end, {
+duration: duration,
+complete: function() { animating = false; },
+step: function(now, fx) {
+
+current[fx.prop] = now;
+if (fx.prop == "perspective") {
+$("#camera").css( '-webkit-perspective', now);
+}
+
+if (fx.prop == "rotation") {
+$("#camera").css('-webkit-transform', 'rotateZ(' + now + 'deg)');
+blocks.forEach(function(v, i) {
+
+
+	$(v).css('-webkit-transform', $(v).data('position') + ' rotateZ(' + (-now) + 'deg)');
+	});
+}
+
+}
+});
+}
+
+$(document).bind("click2", function(e) {
+		zoom += 50;
+		$("#camera").css({
+			"-webkit-transform-origin": '0px 0px 0px'
+			});
+		spinTo(2000, {
+perspective: 0,
+rotation: 0
+}, {
+perspective: 5000,
+rotation: 360
+});
+		update_camera();
+		});
+var previous = 0;
+animating = false;
+$(document).bind('scroll', function(e) {
+		var scrollTop = $(this).scrollTop();
+		var delta = (scrollTop - previous >= 0 ? -1 : 1);
+
+		console.log(scrollTop - previous);
+		if (!animating)
+		spinTo(500, current, {rotation: current.rotation + (delta * 40), perspective: current.perspective + (delta * 200) });
+		previous = scrollTop;
+		});
+
+
+$(document).bind('mousemove2', function(e) {
+
+		mouseX = event.pageX;
+		mouseY = event.pageY;
+
+		if (mouseX > _mouseX) ry += 1.5;
+		else if (mouseX < _mouseX) ry -= 1.5;
+
+		if (mouseY > _mouseY) rx -= 1.5;
+		else if (mouseY < _mouseY) rx += 1.5;
+
+		_mouseX = mouseX;
+		_mouseY = mouseY;
+
+		rotation = 'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+		update_camera();
+		});
+	</script>
